@@ -142,14 +142,26 @@ async function loginLive() {
 }
 
 async function openLiveSession(user) {
-  const { data: profile, error } = await supabaseClient
+  let { data: profile, error } = await supabaseClient
     .from("profiles")
     .select("id, full_name, role")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error || !profile) {
-    loginStatus.textContent = "User profile missing. Add this user in Supabase profiles table.";
+    profile = await createOwnProfile(user);
+  }
+
+  if (error || !profile) {
+    currentUser = {
+      id: user.id,
+      name: user.email || "Live User",
+      role: roleSelect.value || "worker",
+    };
+    loginStatus.innerHTML = `Profile missing for ${escapeHtml(user.email || "this user")}. UID: <code>${escapeHtml(user.id)}</code>`;
+    await loadLiveOrders();
+    openDashboard();
+    render();
     return;
   }
 
@@ -161,6 +173,28 @@ async function openLiveSession(user) {
   await loadLiveOrders();
   openDashboard();
   render();
+}
+
+async function createOwnProfile(user) {
+  const fallbackRole = roleSelect.value === "admin" ? "admin" : "worker";
+  const fallbackName = userName.value.trim() || user.email || "Live User";
+  const { error: insertError } = await supabaseClient.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: fallbackName,
+      role: fallbackRole,
+    },
+    { onConflict: "id" }
+  );
+
+  if (insertError) return null;
+
+  const { data } = await supabaseClient
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("id", user.id)
+    .maybeSingle();
+  return data;
 }
 
 function openDashboard() {
