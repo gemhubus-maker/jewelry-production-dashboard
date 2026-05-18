@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jewelry Production Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="loginScreen" class="login-screen">
+        <div class="brand-panel">
+          <p class="eyebrow">Jewelry Production Portal</p>
+          <h1>Orders, images, and production status in one clean dashboard.</h1>
+          <p class="support-copy">
+            Upload order sheets, attach three reference images, and let your production team update work status.
+          </p>
+        </div>
+
+        <form id="loginForm" class="login-card">
+          <h2>Login</h2>
+          <label>
+            Email
+            <input id="emailInput" type="email" placeholder="admin@example.com" autocomplete="email" />
+          </label>
+          <label>
+            Password
+            <input id="passwordInput" type="password" placeholder="Live password" autocomplete="current-password" />
+          </label>
+          <label>
+            Demo Role
+            <select id="roleSelect">
+              <option value="admin">Admin</option>
+              <option value="worker">Worker</option>
+            </select>
+          </label>
+          <label>
+            Demo Name
+            <input id="userName" type="text" value="Demo User" autocomplete="name" />
+          </label>
+          <button id="loginButton" type="submit">Open Dashboard</button>
+          <p id="loginStatus" class="hint">Demo mode works now. Add Supabase keys in config.js to enable live login.</p>
+        </form>
+      </section>
+
+      <section id="dashboard" class="dashboard hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Production Dashboard</p>
+            <h1 id="dashboardTitle">Admin Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <span id="activeUser" class="user-pill"></span>
+            <button id="logoutButton" class="ghost-button" type="button">Logout</button>
+          </div>
+        </header>
+
+        <section class="stats-grid">
+          <article>
+            <span>Total Orders</span>
+            <strong id="totalOrders">0</strong>
+          </article>
+          <article>
+            <span>Pending</span>
+            <strong id="pendingOrders">0</strong>
+          </article>
+          <article>
+            <span>In Progress</span>
+            <strong id="progressOrders">0</strong>
+          </article>
+          <article>
+            <span>Completed</span>
+            <strong id="completedOrders">0</strong>
+          </article>
+        </section>
+
+        <section id="adminTools" class="admin-tools">
+          <div class="tool-panel">
+            <div>
+              <h2>Upload Excel</h2>
+              <p>Upload .xlsx, .xls, or .csv with order columns.</p>
+            </div>
+            <input id="sheetUpload" type="file" accept=".xlsx,.xls,.csv" />
+            <button id="downloadTemplate" class="secondary-button" type="button">Download Template</button>
+          </div>
+
+          <form id="orderForm" class="order-form">
+            <h2>Add Order Manually</h2>
+            <div class="form-grid">
+              <label>S.No<input name="serial" type="number" min="1" required /></label>
+              <label>Order ID<input name="orderId" type="text" required /></label>
+              <label>SKU<input name="sku" type="text" required /></label>
+              <label>Stone Weight<input name="stoneWeight" type="text" /></label>
+              <label>Stone Color<input name="stoneColor" type="text" /></label>
+              <label>Stone Shape<input name="stoneShape" type="text" /></label>
+              <label>Metal Color<input name="metalColor" type="text" /></label>
+              <label>Item Size<input name="itemSize" type="text" /></label>
+            </div>
+            <button type="submit">Add Order</button>
+          </form>
+        </section>
+
+        <section class="list-section">
+          <div class="list-header">
+            <div>
+              <h2>Orders</h2>
+              <p id="roleHelp">Manage order details and attach three reference images.</p>
+            </div>
+            <div class="list-actions">
+              <input id="searchInput" type="search" placeholder="Search Order ID or SKU" />
+              <button id="exportVisible" class="secondary-button" type="button">Download Excel</button>
+            </div>
+          </div>
+
+          <div id="ordersList" class="orders-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="orderCardTemplate">
+      <article class="order-card">
+        <div class="order-main">
+          <div>
+            <p class="order-meta">S.No <span data-field="serial"></span></p>
+            <h3 data-field="orderId"></h3>
+            <p data-field="sku"></p>
+          </div>
+          <select data-action="status">
+            <option>Pending</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Hold / Issue</option>
+          </select>
+        </div>
+        <dl class="detail-grid">
+          <div><dt>Stone Weight</dt><dd data-field="stoneWeight"></dd></div>
+          <div><dt>Stone Color</dt><dd data-field="stoneColor"></dd></div>
+          <div><dt>Stone Shape</dt><dd data-field="stoneShape"></dd></div>
+          <div><dt>Metal Color</dt><dd data-field="metalColor"></dd></div>
+          <div><dt>Item Size</dt><dd data-field="itemSize"></dd></div>
+          <div><dt>Updated By</dt><dd data-field="updatedBy"></dd></div>
+        </dl>
+        <div class="image-grid"></div>
+        <div class="card-actions">
+          <button data-action="downloadOrder" class="secondary-button" type="button">Download Excel</button>
+          <button data-action="deleteOrder" class="danger-button" type="button">Delete</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
